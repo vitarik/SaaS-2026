@@ -7,14 +7,13 @@ const apiService = {
   register: (payload) => api.post("/auth/register", payload),
   logout: () => api.post("/auth/logout"),
 
-  // Session / user
-  me: (accessToken) =>
-    api.get("/auth/me", {
-      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
-    }),
-
   // Refresh cookie -> new access token
   refresh: () => api.post("/auth/refresh", {}),
+
+  // Session / user
+  me: () => api.get("/auth/me"),
+  getCurrentUser: () => api.get("/users/me"),
+  updateCurrentUser: (payload) => api.patch("/users/me", payload),
 };
 
 export default apiService;

@@ -306,6 +306,14 @@
   gap: 16px;
 }
 
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -332,6 +340,13 @@
   outline: none;
   border-color: rgba(31, 107, 92, 0.48);
   box-shadow: 0 0 0 4px rgba(31, 107, 92, 0.12);
+}
+
+.field__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
 }
 
 .feedback {
@@ -628,6 +643,12 @@
   font-size: 1.08rem;
 }
 
+.button-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .metric-list,
 .detail-list,
 .settings-list {
@@ -662,6 +683,12 @@
   margin: 0;
   text-align: right;
   font-weight: 600;
+}
+
+.detail-row code,
+.settings-row code {
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
 .page-header {
@@ -831,7 +858,8 @@
   }
 
   .detail-row,
-  .settings-row {
+  .settings-row,
+  .card-header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -839,6 +867,10 @@
   .detail-row dd,
   .settings-row span {
     text-align: left;
+  }
+
+  .button-row .button {
+    width: 100%;
   }
 }
 

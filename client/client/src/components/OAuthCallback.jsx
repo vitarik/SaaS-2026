@@ -1,32 +1,46 @@
 // src/components/OAuthCallback.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
+import apiService from "../api/apiService";
+import { extractAccessToken, extractUser, normalizeApiError } from "../api/apiResponse";
+import { useAuth } from "../context/AuthContext";
 
-const OAuthCallback = ({ setUser }) => {
+const OAuthCallback = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const [msg, setMsg] = useState("Finishing Google sign-in...");
+  const { setAuth } = useAuth();
 
   useEffect(() => {
     const sendError = (message) => {
-      try {
-        window.opener?.postMessage(
-          { type: "OAUTH_GOOGLE_ERROR", message },
-          window.location.origin
-        );
-      } catch {}
-      window.close();
+      if (window.opener) {
+        try {
+          window.opener.postMessage(
+            { type: "OAUTH_GOOGLE_ERROR", message },
+            window.location.origin
+          );
+        } catch {}
+        window.close();
+        return;
+      }
+
+      navigate("/login", { replace: true });
     };
 
     const sendSuccess = ({ accessToken, user }) => {
-      try {
-        window.opener?.postMessage(
-          { type: "OAUTH_GOOGLE_SUCCESS", accessToken, user },
-          window.location.origin
-        );
-      } catch {}
-      window.close();
+      if (window.opener) {
+        try {
+          window.opener.postMessage(
+            { type: "OAUTH_GOOGLE_SUCCESS", accessToken, user },
+            window.location.origin
+          );
+        } catch {}
+        window.close();
+        return;
+      }
+
+      if (user) setAuth(user, accessToken);
+      navigate("/", { replace: true });
     };
 
     const run = async () => {
@@ -42,27 +56,19 @@ const OAuthCallback = ({ setUser }) => {
         } catch {}
       }
 
-      // Option B (recommended): backend sets session cookie,
-      // then we call /api/auth/me to get user + token if you return it.
       if (!accessToken || !user) {
         try {
           setMsg("Fetching session...");
-          const meRes = await axios.get("/api/auth/me", { withCredentials: true });
+          const refreshRes = await apiService.refresh();
+          const nextAccessToken = extractAccessToken(refreshRes) || accessToken;
+          const meRes = await apiService.getCurrentUser();
+          const meUser = extractUser(meRes);
 
-          const meUser = meRes?.data?.user;
-          const meToken = meRes?.data?.accessToken; // if you return it
+          if (!meUser?.id) return sendError("No user returned from the active session.");
 
-          if (!meUser) return sendError("No user returned from /api/auth/me.");
-
-          // token optional if you rely on cookies only
-          return sendSuccess({ accessToken: meToken || accessToken, user: meUser });
+          return sendSuccess({ accessToken: nextAccessToken, user: meUser });
         } catch (e) {
-          return sendError(
-            e?.response?.data?.error?.message ||
-              e?.response?.data?.message ||
-              e?.message ||
-              "Google sign-in failed."
-          );
+          return sendError(normalizeApiError(e, "Google sign-in failed."));
         }
       }
 

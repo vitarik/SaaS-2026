@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { CheckCircle2, Layers3 } from "lucide-react";
 import apiService from "../api/apiService";
+import { extractAccessToken, extractUser, normalizeApiError } from "../api/apiResponse";
 import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
@@ -21,22 +22,6 @@ const Register = () => {
     () => process.env.REACT_APP_API_ORIGIN || "http://localhost:5000",
     []
   );
-
-  const normalizeError = (err) => {
-    const data = err?.response?.data;
-
-    if (typeof data?.error === "string") return data.error;
-
-    if (data?.error && typeof data.error === "object") {
-      return data.error.message || JSON.stringify(data.error);
-    }
-
-    if (typeof data?.message === "string") return data.message;
-
-    if (typeof err?.message === "string") return err.message;
-
-    return "Server error";
-  };
 
   useEffect(() => {
     const onMessage = (event) => {
@@ -74,17 +59,15 @@ const Register = () => {
       setLoading(true);
 
       const res = await apiService.register({ email, password });
+      const user = extractUser(res) || { email };
+      const token = extractAccessToken(res);
 
-      const user = res?.data?.user || res?.data?.data?.user || { email };
-      const token = res?.data?.accessToken || res?.data?.data?.accessToken;
-
-      // ✅ single source of truth (context + storage)
       setAuth(user, token);
 
       setSuccess("Account created. Redirecting to dashboard...");
       setTimeout(() => navigate("/"), 600);
     } catch (err) {
-      setError(normalizeError(err));
+      setError(normalizeApiError(err));
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { CheckCircle2, ShieldCheck } from "lucide-react";
 import apiService from "../api/apiService";
+import { extractAccessToken, extractUser, normalizeApiError } from "../api/apiResponse";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -15,19 +16,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const normalizeError = (err) => {
-    const data = err?.response?.data;
-
-    if (typeof data?.error === "string") return data.error;
-    if (data?.error && typeof data.error === "object") {
-      return data.error.message || JSON.stringify(data.error);
-    }
-    if (typeof data?.message === "string") return data.message;
-    if (typeof err?.message === "string") return err.message;
-
-    return "Server error";
-  };
 
   // ✅ Only accept messages from backend origin (where popup lands)
   const backendOrigin = useMemo(
@@ -70,16 +58,14 @@ const Login = () => {
       setLoading(true);
 
       const res = await apiService.login({ email, password });
-
-      const accessToken =
-        res?.data?.accessToken || res?.data?.data?.accessToken;
-      const user = res?.data?.user || res?.data?.data?.user || { email };
+      const accessToken = extractAccessToken(res);
+      const user = extractUser(res) || { email };
 
       setAuth(user, accessToken);
 
       navigate("/", { replace: true });
     } catch (err) {
-      setError(normalizeError(err));
+      setError(normalizeApiError(err));
     } finally {
       setLoading(false);
     }

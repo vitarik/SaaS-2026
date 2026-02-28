@@ -1,6 +1,7 @@
 // src/components/Navbar.jsx
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, LogOut, Menu } from "lucide-react";
 import apiService from "../api/apiService";
 import { useAuth } from "../context/AuthContext";
 
@@ -20,44 +21,65 @@ const Navbar = () => {
     }
   };
 
-  return (
-    <div
-      style={{
-        padding: "12px 16px",
-        borderBottom: "1px solid #eee",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-      }}
-    >
-      {/* Left */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Link to="/" style={{ textDecoration: "none", fontWeight: 700 }}>
-          MyApp
-        </Link>
-      </div>
+  const handleOpenSidebar = () => {
+    window.dispatchEvent(new CustomEvent("app-shell:toggle-sidebar"));
+  };
 
-      {/* Right */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        {user ? (
-          <>
-            <div>
-              Welcome{" "}
-              <b>{user?.first_name || user?.email || "User"}</b>
-            </div>
-            <button onClick={handleLogout} style={{ cursor: "pointer" }}>
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        )}
+  const displayName = user?.first_name || user?.email || "User";
+  const initials = (displayName || "U").slice(0, 1).toUpperCase();
+
+  return (
+    <header className="topbar">
+      <div className="topbar__inner">
+        <Link to="/" className="brand">
+          <div className="brand__mark">S</div>
+          <div className="brand__text">
+            <span className="brand__eyebrow">Starter UI</span>
+            <span className="brand__title">SaaS Template</span>
+          </div>
+        </Link>
+
+        <div className="topbar__actions">
+          {user ? (
+            <>
+              <button
+                className="button button--secondary topbar__menu-trigger"
+                type="button"
+                onClick={handleOpenSidebar}
+              >
+                <Menu size={17} />
+                Menu
+              </button>
+              <div className="user-chip">
+                <div className="user-chip__avatar">{initials}</div>
+                <div className="user-chip__meta">
+                  <span className="user-chip__label">Workspace</span>
+                  <span className="user-chip__value">{displayName}</span>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="button button--ghost"
+                type="button"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="button button--secondary">
+                Login
+              </Link>
+              <Link to="/register" className="button button--primary">
+                Register
+                <ArrowRight size={16} />
+              </Link>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </header>
   );
 };
 

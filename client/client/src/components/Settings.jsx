@@ -1,15 +1,73 @@
 import React from "react";
+import { Bell, PanelsTopLeft, SlidersHorizontal } from "lucide-react";
 
 const Settings = () => {
   return (
-    <div style={{ maxWidth: 900, margin: "30px auto", padding: 16 }}>
-      <h1 style={{ marginTop: 0 }}>Settings</h1>
-      <p>Template page. Later: theme, notifications, account settings.</p>
+    <>
+      <section className="page-section">
+        <div className="page-header">
+          <span className="kicker">Settings</span>
+          <h2 className="page-title">Platform defaults</h2>
+          <p className="page-subtitle">
+            Keep settings generic at template stage, then specialize them around notification,
+            billing, workspace, or product behavior once the domain is clear.
+          </p>
+        </div>
+      </section>
 
-      <div style={{ border: "1px solid #ddd", borderRadius: 12, padding: 14 }}>
-        <div>✅ Placeholder settings card</div>
-      </div>
-    </div>
+      <section className="grid grid--3">
+        <article className="settings-card">
+          <div className="metric-card__icon">
+            <SlidersHorizontal size={20} />
+          </div>
+          <h3 className="section-title">Preferences</h3>
+          <div className="settings-list">
+            <div className="settings-row">
+              <strong>Theme token</strong>
+              <span>Neutral starter</span>
+            </div>
+            <div className="settings-row">
+              <strong>Density</strong>
+              <span>Comfortable</span>
+            </div>
+          </div>
+        </article>
+
+        <article className="settings-card">
+          <div className="metric-card__icon">
+            <Bell size={20} />
+          </div>
+          <h3 className="section-title">Notifications</h3>
+          <div className="settings-list">
+            <div className="settings-row">
+              <strong>Email updates</strong>
+              <span>Placeholder</span>
+            </div>
+            <div className="settings-row">
+              <strong>Product alerts</strong>
+              <span>Placeholder</span>
+            </div>
+          </div>
+        </article>
+
+        <article className="settings-card">
+          <div className="metric-card__icon">
+            <PanelsTopLeft size={20} />
+          </div>
+          <h3 className="section-title">Workspace</h3>
+          <div className="settings-list">
+            <div className="settings-row">
+              <strong>Layout mode</strong>
+              <span>Responsive shell</span>
+            </div>
+            <div className="settings-row">
+              <strong>Starter profile</strong>
+              <span>Reusable</span>
+            </div>
+          </div>
+        </article>
+      </section>
+    </>
   );
 };
 

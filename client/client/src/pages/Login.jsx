@@ -1,6 +1,7 @@
 // src/pages/Login.jsx
 import React, { useMemo, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { CheckCircle2, ShieldCheck } from "lucide-react";
 import apiService from "../api/apiService";
 import { useAuth } from "../context/AuthContext";
 
@@ -121,69 +122,107 @@ const Login = () => {
   };
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
-      <h1>Login</h1>
+    <div className="auth-shell">
+      <div className="auth-panel">
+        <section className="auth-hero">
+          <span className="auth-hero__badge">Universal starter</span>
+          <div>
+            <h1 className="auth-hero__title">Authentication screens that still feel product-ready.</h1>
+            <p className="auth-hero__body">
+              This template is intentionally neutral: clean enough for client work,
+              modern enough for internal tools, and easy to adapt to a new brand.
+            </p>
+          </div>
 
-      {error && (
-        <div style={{ color: "red", marginBottom: 10, whiteSpace: "pre-wrap" }}>
-          {error}
-        </div>
-      )}
+          <div className="auth-checks">
+            <div className="auth-check">
+              <div className="auth-check__icon">
+                <ShieldCheck size={18} />
+              </div>
+              <div>
+                <strong>Email, JWT, and OAuth foundation</strong>
+                <div className="page-copy">Production-shaped auth flow without heavy branding.</div>
+              </div>
+            </div>
+            <div className="auth-check">
+              <div className="auth-check__icon">
+                <CheckCircle2 size={18} />
+              </div>
+              <div>
+                <strong>Responsive by default</strong>
+                <div className="page-copy">Single-column mobile layout and a stronger desktop presentation.</div>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: 10 }}>
-          <label htmlFor="email" style={{ display: "block" }}>
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            autoComplete="email"
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
+        <section className="auth-card">
+          <div className="auth-card__header">
+            <span className="kicker">Login</span>
+            <h2 className="auth-card__title">Welcome back</h2>
+            <p className="page-copy">Use your email and password or continue with Google.</p>
+          </div>
 
-        <div style={{ marginBottom: 10 }}>
-          <label htmlFor="password" style={{ display: "block" }}>
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            autoComplete="current-password"
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={{ width: "100%", padding: 10 }}
-          />
-        </div>
+          {error && (
+            <div className="feedback feedback--error" style={{ whiteSpace: "pre-wrap" }}>
+              {error}
+            </div>
+          )}
 
-        <button
-          type="submit"
-          disabled={loading || googleLoading}
-          style={{ width: "100%", padding: 10, cursor: "pointer" }}
-        >
-          {loading ? "Signing in..." : "Login"}
-        </button>
-      </form>
+          <form className="form-stack" onSubmit={handleSubmit}>
+            <div className="field">
+              <label htmlFor="email" className="field__label">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                autoComplete="email"
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="field__input"
+              />
+            </div>
 
-      <div style={{ marginTop: 12 }}>
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={loading || googleLoading}
-          style={{ width: "100%", padding: 10, cursor: "pointer" }}
-        >
-          {googleLoading ? "Opening Google..." : "Sign in with Google"}
-        </button>
+            <div className="field">
+              <label htmlFor="password" className="field__label">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                autoComplete="current-password"
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="field__input"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || googleLoading}
+              className="button button--primary button--full"
+            >
+              {loading ? "Signing in..." : "Login"}
+            </button>
+          </form>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={loading || googleLoading}
+            className="button button--secondary button--full"
+          >
+            {googleLoading ? "Opening Google..." : "Sign in with Google"}
+          </button>
+
+          <p className="auth-footer">
+            No account yet? <Link to="/register" className="auth-link">Create one</Link>
+          </p>
+        </section>
       </div>
-
-      <p style={{ marginTop: 12 }}>
-        No account? <Link to="/register">Register</Link>
-      </p>
     </div>
   );
 };

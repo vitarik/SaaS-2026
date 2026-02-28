@@ -1,0 +1,9 @@
+<%- include("partials/header.ejs", { 
+    currentMonth: new Date().getMonth() + 1, 
+    currentYear: new Date().getFullYear(), 
+    monthlyIncomeEstimate: 0, 
+    totalPredicted: 0, 
+    incomeResult: [], 
+    totalReal: 0, 
+    body: 'register_content.ejs' 
+  }) %>

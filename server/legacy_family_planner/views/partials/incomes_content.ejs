@@ -1,0 +1,157 @@
+<div class="container">
+    <h1>Income Summary / <%= new Date(currentYear, currentMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }) %></h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Amount</th>
+          <th>Source</th>
+          <th>Category</th>
+          <th>Frequency</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% incomes.forEach(item => { %>
+          <tr>
+            <td><%= item.amount %></td>
+            <td><%= item.source %></td>
+            <td><%= item.category %></td>
+            <td><%= item.frequency %></td>
+            <td><%= formatDate(item.date) %></td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="openUpdateIncomeModal('<%= item.id %>', '<%= item.amount %>', '<%= item.source %>', '<%= item.category %>', '<%= item.frequency %>', '<%= item.date %>')">
+                <i class="fas fa-edit"></i> Update
+              </button>
+              <form action="incomes/delete-income/<%= item.id %>" method="POST" style="display:inline;">
+              <button class="btn btn-danger btn-sm" onclick="deleteExpenseItem('<%= item.id %>')">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  
+    <button class="btn btn-success btn-sm" id="addIncomeButton">
+      <i class="fas fa-plus"></i> Add Income
+    </button>
+  
+    <!-- Popup Form for Adding Income -->
+    <div id="addIncomeModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Income</h2>
+        <form id="addIncomeForm" action="/incomes/add-income" method="POST">
+          <div class="form-group">
+            <label for="amount">Amount</label>
+            <input type="number" class="form-control" id="amount" name="amount" required>
+          </div>
+          <div class="form-group">
+            <label for="source">Source</label>
+            <input type="text" class="form-control" id="source" name="source" required>
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" class="form-control" id="category" name="category" required>
+          </div>
+          <div class="form-group">
+            <label for="frequency">Frequency</label>
+            <select class="form-control" id="frequency" name="frequency" required>
+              <option value="one-time">One-time</option>
+              <option value="weekly">Weekly</option>
+              <option value="bi-weekly">Bi-weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" class="form-control" id="date" name="date" required>
+          </div>
+          <button type="submit" class="btn btn-success">Add Income</button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Popup Form for Updating Income -->
+    <div id="updateIncomeModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeUpdateIncomeModal()">&times;</span>
+        <h2>Update Income</h2>
+        <form id="updateIncomeForm" action="" method="POST">
+          <div class="form-group">
+            <label for="updateAmount">Amount</label>
+            <input type="number" class="form-control" id="updateAmount" name="amount" required>
+          </div>
+          <div class="form-group">
+            <label for="updateSource">Source</label>
+            <input type="text" class="form-control" id="updateSource" name="source" required>
+          </div>
+          <div class="form-group">
+            <label for="updateCategory">Category</label>
+            <input type="text" class="form-control" id="updateCategory" name="category" required>
+          </div>
+          <div class="form-group">
+            <label for="updateFrequency">Frequency</label>
+            <select class="form-control" id="updateFrequency" name="frequency" required>
+              <option value="one-time">One-time</option>
+              <option value="weekly">Weekly</option>
+              <option value="bi-weekly">Bi-weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="updateDate">Date</label>
+            <input type="date" class="form-control" id="updateDate" name="date" required>
+          </div>
+          <button type="submit" class="btn btn-success">Update Income</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+  
+    $(document).ready(function() {
+      $('#addIncomeButton').click(function() {
+        $('#addIncomeModal').show();
+      });
+  
+      $('.close').click(function() {
+        $('#addIncomeModal').hide();
+        $('#updateIncomeModal').hide();
+      });
+  
+      $(window).click(function(event) {
+        if ($(event.target).is('#addIncomeModal')) {
+          $('#addIncomeModal').hide();
+        }
+        if ($(event.target).is('#updateIncomeModal')) {
+          $('#updateIncomeModal').hide();
+        }
+      });
+  
+      window.openUpdateIncomeModal = function(id, amount, source, category, frequency, date) {
+        $('#updateIncomeModal').show();
+        $('#updateAmount').val(amount);
+        $('#updateSource').val(source);
+        $('#updateCategory').val(category);
+        $('#updateFrequency').val(frequency);
+        $('#updateDate').val(new Date(date).toISOString().split('T')[0]); // Set the date in the update form
+        $('#updateIncomeForm').attr('action', 'incomes/update-income/' + id);
+      }
+  
+      window.closeUpdateIncomeModal = function() {
+        $('#updateIncomeModal').hide();
+      }
+    });
+  </script>
+  
+  <%- include("footer.ejs") %>
+  

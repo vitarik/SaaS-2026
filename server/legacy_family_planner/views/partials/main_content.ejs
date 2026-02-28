@@ -1,0 +1,240 @@
+<style>
+  .house { background-color: #ffebcc; }
+  .daily_life { background-color: #d0f0c0; }
+  .transport { background-color: #cce5ff; }
+  .savings-debts { background-color: #f2dede; }
+  .table-container { max-height: 600px; overflow-y: auto; }
+  .table-container thead, .table-container tfoot { position: sticky; background: lightgray; z-index: 2; }
+  .table-container thead { top: 0; }
+  .table-container tfoot { bottom: 0; }
+  .table-container thead th, .table-container tfoot th { background: lightgray; z-index: 3; }
+</style>
+
+<div class="container">
+  <h1>Monthly Budget / <%= new Date(currentYear, currentMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }) %></h1>
+  <div class="table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Entry</th>
+          <th>Predicted Amount</th>
+          <th>Real Amount</th>
+          <th>Balance</th>
+          <th>Recurring</th>
+          <th>Frequency</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% budgets.sort((a, b) => a.category.localeCompare(b.category)).forEach(item => { %>
+        <tr>
+          <td class="<%= item.category %>"><%= item.category.replace('_', ' ').replace('-', '/') %></td>
+          <td><%= item.description %></td>
+          <td>$<%= item.predicted_amount %></td>
+          <td>$<%= item.real_amount %></td>
+          <td>$<%= item.balance %></td>
+          <td><%= item.recurring ? "✅ Yes" : "❌ No" %></td>
+          <td><%= item.recurring ? item.frequency : "-" %></td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="openUpdateBudgetModal('<%= item.id %>', '<%= item.category %>', '<%= item.description %>', '<%= item.predicted_amount %>', '<%= item.date %>', '<%= item.recurring %>', '<%= item.frequency %>', '<%= item.start_date %>', '<%= item.end_date %>')">
+              <i class="fas fa-edit"></i> Update
+            </button>
+            <form action="/delete-budget/<%= item.id %>" method="POST" style="display:inline;">
+              <button class="btn btn-danger btn-sm">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>Total</strong></td>
+          <td></td>
+          <td><strong>$<%= budgets.reduce((acc, item) => acc + parseFloat(item.predicted_amount), 0).toFixed(2) %></strong></td>
+          <td><strong>$<%= budgets.reduce((acc, item) => acc + parseFloat(item.real_amount), 0).toFixed(2) %></strong></td>
+          <td><strong>$<%= budgets.reduce((acc, item) => acc + (parseFloat(item.predicted_amount) - parseFloat(item.real_amount)), 0).toFixed(2) %></strong></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <button class="btn btn-success btn-sm" id="addBudgetButton">
+    <i class="fas fa-plus"></i> Add Budget
+  </button>
+
+  <!-- Popup Form for Adding Budget -->
+  <div id="addBudgetModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('addBudget')">&times;</span>
+      <h2>Add Budget</h2>
+      <form id="addBudgetForm" action="/add-budget" method="POST">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select class="form-control" id="category" name="category" required>
+            <option value="" disabled selected>Select a Category</option>
+            <option value="house">House</option>
+            <option value="daily_life">Daily Life</option>
+            <option value="transport">Transport</option>
+            <option value="savings-debts">Savings/Debts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <input type="text" class="form-control" id="description" name="description" required>
+        </div>
+        <div class="form-group">
+          <label for="predicted_amount">Predicted Amount</label>
+          <input type="number" class="form-control" id="predicted_amount" name="predicted_amount" required>
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" class="form-control" id="date" name="date">
+        </div>
+        <div class="form-group">
+          <label>Recurring:</label>
+          <input type="checkbox" name="recurring" value="true">
+        </div>
+        <div class="form-group">
+          <label>Frequency:</label>
+          <select name="frequency">
+            <option value="one-time">One-Time</option>
+            <option value="weekly">Weekly</option>
+            <option value="biweekly">Biweekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="quarterly">Quarterly</option>
+            <option value="annual">Annual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Start Date:</label>
+          <input type="date" name="start_date">
+        </div>
+        <div class="form-group">
+          <label>End Date (Optional):</label>
+          <input type="date" name="end_date">
+        </div>
+        <button type="submit" class="btn btn-success">Add Budget</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup Form for Updating Budget -->
+<div id="updateBudgetModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeUpdateBudgetModal()">&times;</span>
+    <h2>Update Budget</h2>
+    <form id="updateBudgetForm" action="" method="POST">
+      <div class="form-group">
+        <label for="updateCategory">Category</label>
+        <select class="form-control" id="updateCategory" name="category" required>
+          <option value="house">House</option>
+          <option value="daily_life">Daily Life</option>
+          <option value="transport">Transport</option>
+          <option value="savings-debts">Savings/Debts</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="updateDescription">Description</label>
+        <input type="text" class="form-control" id="updateDescription" name="description" required>
+      </div>
+      <div class="form-group">
+        <label for="updatePredictedAmount">Predicted Amount</label>
+        <input type="number" class="form-control" id="updatePredictedAmount" name="predicted_amount" required>
+      </div>
+      <div class="form-group">
+        <label for="updateDate">Date</label>
+        <input type="date" class="form-control" id="updateDate" name="date">
+      </div>
+      <div class="form-group">
+        <label>Recurring:</label>
+        <input type="hidden" name="recurring" value="false"> <!-- Ensures value is always sent -->
+        <input type="checkbox" id="updateRecurring" name="recurring" value="true">
+      </div>              
+      <div class="form-group">
+        <label>Frequency:</label>
+        <select class="form-control" id="updateFrequency" name="frequency">
+          <option value="one-time">One-Time</option>
+          <option value="weekly">Weekly</option>
+          <option value="biweekly">Biweekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="annual">Annual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Start Date:</label>
+        <input type="date" class="form-control" id="updateStartDate" name="start_date">
+      </div>
+      <div class="form-group">
+        <label>End Date (Optional):</label>
+        <input type="date" class="form-control" id="updateEndDate" name="end_date">
+      </div>
+      <button type="submit" class="btn btn-success">Update Budget</button>
+    </form>
+  </div>
+</div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+
+  $('#addBudgetButton').click(function() {
+      $('#addBudgetModal').show();
+  });
+
+  $('.close').click(function() {
+      $('#addBudgetModal').hide();
+      $('#updateBudgetModal').hide();
+  });
+
+  $(window).click(function(event) {
+      if ($(event.target).is('#addBudgetModal')) {
+          $('#addBudgetModal').hide();
+      }
+      if ($(event.target).is('#updateBudgetModal')) {
+        console.log("DSAD");
+          $('#updateBudgetModal').hide();
+      }
+  });
+
+  window.openUpdateBudgetModal = function(id, category, description, predicted_amount, date, recurring, frequency, start_date, end_date) {
+    $('#updateBudgetModal').show();
+
+    $('#updateCategory').val(category);
+    $('#updateDescription').val(description);
+    $('#updatePredictedAmount').val(predicted_amount);
+    $('#updateDate').val(formatDateForInput(date));
+
+    $('#updateStartDate').val(start_date ? formatDateForInput(start_date) : "");
+    $('#updateEndDate').val(end_date ? formatDateForInput(end_date) : "");
+
+    // Convert to a proper boolean
+    let isRecurring = recurring === true || recurring === "true"; 
+    $('#updateRecurring').prop('checked', isRecurring);
+
+    $('#updateFrequency').val(frequency);
+    $('#updateBudgetForm').attr('action', '/update-budget/' + id);
+};
+
+
+// Helper function to properly format the date for input fields
+function formatDateForInput(dateString) {
+    if (!dateString || dateString === "null") return "";
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+        console.error("Invalid date format:", dateString);
+        return "";
+    }
+    return date.toISOString().split('T')[0];
+}
+
+});
+</script>
+
+<%- include("footer.ejs") %>

@@ -1,0 +1,218 @@
+<div class="container">
+  <h1>Expense Summary / <%= new Date(currentYear, currentMonth - 1).toLocaleString('default', { month: 'long', year: 'numeric' }) %></h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% expenses.forEach(item => { %>
+        <tr>
+          <td class="<%= item.category%>"><%= item.category.replace('_', ' ').replace('-','/') %></td>
+          <td><%= item.entry_name %></td>
+          <td><%= item.amount %></td>
+          <td><%= formatDate(item.date) %></td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="openUpdateExpenseModal('<%= item.id %>', '<%= item.amount %>', '<%= item.category %>', '<%= item.entry_id %>', '<%= item.date %>')">
+              <i class="fas fa-edit"></i> Update
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteExpenseItem('<%= item.id %>')">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <button class="btn btn-success btn-sm" id="addExpenseButton">
+    <i class="fas fa-plus"></i> Add Expense
+  </button>
+
+  <!-- Popup Form for Adding Expense -->
+  <div id="addExpenseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeNewExpenseModal()">&times;</span>
+      <h2>Add Expense</h2>
+      <form id="addExpenseForm">
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select class="form-control" id="newCategory" name="category" required>
+            <option value="" disabled selected>Select a Category</option>
+            <option value="house">House</option>
+            <option value="daily_life">Daily Life</option>
+            <option value="transport">Transport</option>
+            <option value="savings-debts">Savings/Debts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="entry">Description</label>
+          <select class="form-control" id="entry" name="entry_id" required>
+            <option value="" disabled selected>Select Description</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount</label>
+          <input type="number" class="form-control" id="amount" name="amount" required>
+        </div>
+        <div class="form-group">
+          <label for="date">Date</label>
+          <input type="date" class="form-control" id="date" name="date" required>
+        </div>
+        <button type="submit" class="btn btn-success">Add Expense</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup Form for Updating Expense -->
+  <div id="updateExpenseModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeUpdateExpenseModal()">&times;</span>
+      <h2>Update Expense</h2>
+      <form id="updateExpenseForm">
+        <div class="form-group">
+          <label for="updateCategory">Category</label>
+          <select class="form-control" id="updateCategory" name="category" required>
+            <option value="" disabled selected>Select a Category</option>
+            <option value="house">House</option>
+            <option value="daily_life">Daily Life</option>
+            <option value="transport">Transport</option>
+            <option value="savings-debts">Savings/Debts</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="updateEntry">Description</label>
+          <select class="form-control" id="updateEntry" name="entry_id" required>
+            <option value="" disabled selected>Select Description</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="updateAmount">Amount</label>
+          <input type="number" class="form-control" id="updateAmount" name="amount" required>
+        </div>
+        <div class="form-group">
+          <label for="updateDate">Date</label>
+          <input type="date" class="form-control" id="updateDate" name="date" required>
+        </div>
+        <button type="submit" class="btn btn-success">Update Expense</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function () {
+  $('#addExpenseButton').click(function () {
+    $('#addExpenseModal').show();
+  });
+
+  $('.close').click(function () {
+    $('#addExpenseModal').hide();
+    $('#updateExpenseModal').hide();
+  });
+
+  $(window).click(function (event) {
+    if (event.target == document.getElementById('addExpenseModal')) {
+      $('#addExpenseModal').hide();
+    }
+    if (event.target == document.getElementById('updateExpenseModal')) {
+      $('#updateExpenseModal').hide();
+    }
+  });
+
+  $('#newCategory').change(function () {
+    const category = $(this).val();
+    updateEntries(category, 'entry');
+  });
+
+  $('#updateCategory').change(function () {
+    const category = $(this).val();
+    updateEntries(category, 'updateEntry');
+  });
+
+  $('#addExpenseForm').submit(function (event) {
+    event.preventDefault();
+    const formData = $(this).serialize();
+    $.post('/expenses/add-expense', formData, function () {
+      location.reload();
+    });
+  });
+
+  $('#updateExpenseForm').submit(function (event) {
+    event.preventDefault();
+    const formData = $(this).serialize();
+    const actionUrl = $(this).attr('action');
+    $.post(actionUrl, formData, function () {
+      location.reload();
+    });
+  });
+
+  function deleteExpenseItem(id) {
+    $.post('/expenses/delete-expense/' + id, function () {
+      location.reload();
+    });
+  }
+  window.deleteExpenseItem = deleteExpenseItem; // ✅ Make deleteExpenseItem globally accessible
+});
+
+// ✅ Define closeUpdateExpenseModal in the global scope
+function closeUpdateExpenseModal() {
+  $('#updateExpenseModal').hide();
+}
+window.closeUpdateExpenseModal = closeUpdateExpenseModal; // ✅ Ensure it's globally available
+
+function closeNewExpenseModal() {
+  $('#addExpenseModal').hide();
+}
+window.closeNewExpenseModal = closeNewExpenseModal; // ✅ Ensure it's globally available
+
+function openUpdateExpenseModal(id, amount, category, entry_id, date) {
+  $('#updateExpenseModal').show();
+  $('#updateAmount').val(amount);
+  $('#updateCategory').val(category);
+  $('#updateDate').val(new Date(date).toISOString().split('T')[0]);
+  $('#updateExpenseForm').attr('action', '/expenses/update-expense/' + id);
+
+  updateEntries(category, 'updateEntry', entry_id);
+}
+window.openUpdateExpenseModal = openUpdateExpenseModal; // ✅ Ensure it's globally available
+
+async function updateEntries(category, entryElementId, selectedEntryId = null) {
+  const entrySelect = $('#' + entryElementId);
+  entrySelect.html('<option value="" disabled selected>Loading...</option>');
+
+  try {
+    const response = await fetch(`/expenses/get-entries/${category}`);
+    const entries = await response.json();
+
+    entrySelect.html('<option value="" disabled selected>Select Description</option>');
+
+    entries.forEach(entry => {
+      const option = $('<option></option>')
+        .val(entry.id)
+        .text(`${entry.description} (Predicted: ${entry.predicted_amount}, Real: ${entry.real_amount})`);
+
+      if (parseInt(entry.id) === parseInt(selectedEntryId)) {
+        option.prop('selected', true);
+      }
+
+      entrySelect.append(option);
+    });
+  } catch (error) {
+    console.error("❌ Error fetching entries:", error);
+  }
+}
+window.updateEntries = updateEntries; // ✅ Ensure updateEntries is globally available
+
+</script>
+
+<%- include("footer.ejs") %>
+
+
+
